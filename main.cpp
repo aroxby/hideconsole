@@ -36,13 +36,18 @@ int main(int argc, char *argv[]) {
         UsageBox();
         return 1;
     }
-    
+
     stringstream cmdline;
     char *exePath = argv[1];
     while(*++argv) {
         cmdline << shellEscape(*argv) << ' ';
     }
-    
+
+    //I'm too lazy to mess with unique pointers and stuff, we're almost done anyway
+    const char *cmdline_sr = cmdline.str().c_str();
+    char *cmdline_fb = new char[strlen(cmdline_sr) + 1];
+    strcpy(cmdline_fb, cmdline_sr);
+
     STARTUPINFO si;
     PROCESS_INFORMATION pi;
     memset(&si, 0, sizeof(si));
@@ -50,13 +55,13 @@ int main(int argc, char *argv[]) {
     memset(&pi, 0, sizeof(pi));
     DWORD flags = CREATE_NO_WINDOW;
     BOOL cpSuccess = CreateProcess(
-        exePath, (char*)/*HACK*/cmdline.str().c_str(), nullptr, nullptr, FALSE, flags, nullptr,  nullptr, &si, &pi
+        exePath, cmdline_fb, nullptr, nullptr, FALSE, flags, nullptr,  nullptr, &si, &pi
     );
-    
+
     if(!cpSuccess) {
-        FailBox(cmdline.str().c_str());
+        FailBox(cmdline_fb);
         return -1;
     }
-    
+
     return 0;
 }
